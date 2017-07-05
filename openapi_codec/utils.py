@@ -1,5 +1,7 @@
+import re
+
 def link_sorting_key(link_item):
-    keys, link = link_item
+    keys, link, *_ = link_item
     action_priority = {
         '': 0, 'get': 0,
         'post': 1,
@@ -10,12 +12,34 @@ def link_sorting_key(link_item):
     return (link.url, action_priority)
 
 
+def get_tags_from_link_description(description):
+    tags = []
+    if 'tags:' not in description:
+        return tags
+
+    tags_pattern = r'tags:\s+(?P<tags>(\s+-\s+[a-zA-Z][a-zA-Z ]+\s*)+)'
+
+    tags_match = re.finditer(tags_pattern, description)
+    if not tags_match:
+        return tags
+    tags_string = ''
+    for tag_match in tags_match:
+        tags_string = tag_match.group('tags')
+
+    tag_pattern = r'\s+-\s+(?P<tag>[a-zA-Z][a-zA-Z ]+)'
+    for tag_match in re.finditer(tag_pattern, tags_string):
+        tag = tag_match.group('tag')
+        tags.append(tag)
+    return tags
+
+
 def get_links_from_document(node, keys=()):
     links = []
     for key, link in getattr(node, 'links', {}).items():
+        tags = get_tags_from_link_description(link.description)
         # Get all the resources at this level
         index = keys + (key,)
-        links.append((index, link))
+        links.append((index, link, tags))
     for key, child in getattr(node, 'data', {}).items():
         # Descend into any nested structures.
         index = keys + (key,)

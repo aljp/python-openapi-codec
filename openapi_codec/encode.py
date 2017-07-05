@@ -1,3 +1,5 @@
+import pprint
+
 import coreschema
 from collections import OrderedDict
 from coreapi.compat import urlparse
@@ -41,13 +43,14 @@ def _get_links(document):
     """
     # Extract all the links from the first or second level of the document.
     links = []
-    for keys, link in get_links_from_document(document):
+    for keys, link, tags in get_links_from_document(document):
         if len(keys) > 1:
             operation_id = '_'.join(keys[1:])
-            tags = [keys[0]]
+            tags.append(keys[0])
         else:
             operation_id = keys[0]
-            tags = []
+        tags.extend(tags)
+        tags = list(set(tags))
         links.append((operation_id, link, tags))
 
     # Determine if the operation ids each have unique names or not.
@@ -94,6 +97,7 @@ def _get_operation(operation_id, link, tags):
         operation['summary'] = summary
     if encoding:
         operation['consumes'] = [encoding]
+    pprint.pprint(tags)
     if tags:
         operation['tags'] = tags
     return operation
