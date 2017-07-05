@@ -44,13 +44,14 @@ def _get_links(document):
     # Extract all the links from the first or second level of the document.
     links = []
     for keys, link, tags in get_links_from_document(document):
+        tags = list(set(tags))
+
         if len(keys) > 1:
             operation_id = '_'.join(keys[1:])
             tags.append(keys[0])
         else:
             operation_id = keys[0]
-        tags.extend(tags)
-        tags = list(set(tags))
+
         links.append((operation_id, link, tags))
 
     # Determine if the operation ids each have unique names or not.
